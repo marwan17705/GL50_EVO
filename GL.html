@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Web Bluetooth / Notifications (Async Await).">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <center><h1>Web Bluetooth Glucose Demo &#129656</h1></center>
+    <title>Web Bluetooth Blood pressure Demo</title>
+    <!-- <input type="button" value="Generate a table." onclick="generate_table()"> -->
+    <!-- <left><button id="Generate">Generate</button> -->
+   <button onclick="funcAll()">all</button>
+   <button onclick="funcFirst()">first</button>
+   <button onclick="funcLast()">last</button>
+   <button onclick="funcUpper4()">upper</button>
+
+    <script>
+      window.addEventListener('error', function(error) {
+        if (ChromeSamples && ChromeSamples.setStatus) {
+          console.error(error);
+          ChromeSamples.setStatus(error.message + ' (Your browser may not support this feature.)');
+          error.preventDefault();
+        }
+      });
+    </script>
+    
+  </head>
+
+  <body>
+
+<script>
+
+
+  window.addEventListener('DOMContentLoaded', function() {
+    const searchParams = new URL(location).searchParams;
+    const inputs = Array.from(document.querySelectorAll('input[id]'));
+
+    inputs.forEach(input => {
+      if (searchParams.has(input.id)) {
+        if (input.type == 'checkbox') {
+          input.checked = searchParams.get(input.id);
+        } else {
+          input.value = searchParams.get(input.id);
+          input.blur();
+        }
+      }
+      if (input.type == 'checkbox') {
+        input.addEventListener('change', function(event) {
+          const newSearchParams = new URL(location).searchParams;
+          if (event.target.checked) {
+            newSearchParams.set(input.id, event.target.checked);
+          } else {
+            newSearchParams.delete(input.id);
+          }
+          history.replaceState({}, '', Array.from(newSearchParams).length ?
+              location.pathname + '?' + newSearchParams : location.pathname);
+        });
+      } else {
+        input.addEventListener('input', function(event) {
+          const newSearchParams = new URL(location).searchParams;
+          if (event.target.value) {
+            newSearchParams.set(input.id, event.target.value);
+          } else {
+            newSearchParams.delete(input.id);
+          }
+          history.replaceState({}, '', Array.from(newSearchParams).length ?
+              location.pathname + '?' + newSearchParams : location.pathname);
+        });
+      }
+    });
+  });
+</script>
+
+<form>
+  <center><button id="startNotifications">Start notifications</button>
+  <button id="stopNotifications">Stop notifications</button></center>
+</form>
+
+<script>
+  var ChromeSamples = {
+    log: function() {
+      var line = Array.prototype.slice.call(arguments).map(function(argument) {
+        return typeof argument === 'string' ? argument : JSON.stringify(argument);
+      }).join(' ');
+
+      document.querySelector('#log').textContent += line + '\n';
+    },
+
+    clearLog: function() {
+      document.querySelector('#log').textContent = '';
+    },
+
+    setStatus: function(status) {
+      document.querySelector('#status').textContent = status;
+    },
+
+    setContent: function(newContent) {
+      var content = document.querySelector('#content');
+      while(content.hasChildNodes()) {
+        content.removeChild(content.lastChild);
+      }
+      content.appendChild(newContent);
+    }
+  };
+</script>
+
+<h3>Output</h3>
+<div id="output" class="output">
+  <div id="content"></div>
+  <div id="status"></div>
+  <pre id="log"></pre>
+</div>
+    
+<script>
+    // var myCharacteristic;
+    var server;
+    var count;
+    var Glucose=[];
+    let serviceUuid = "00001808-0000-1000-8000-00805f9b34fb";
+    let characteristicUuidGM = "00002a18-0000-1000-8000-00805f9b34fb"; //n
+    let characteristicUuidGMC = "00002a34-0000-1000-8000-00805f9b34fb"; //n
+    let characteristicUuidRACP = "00002a52-0000-1000-8000-00805f9b34fb"; // i w
+        
+
+
+    
+    async function funcAll()
+  {
+    const service  = await server.getPrimaryService(serviceUuid);
+    var myCharacteristicRACP = await service.getCharacteristic(characteristicUuidRACP);
+    count=0;    Glucose=[];
+
+    console.log("funcAll");
+    var value_write = Uint16Array.of((1)*256+1); //[0x1,1]
+
+    console.log('> writeValue prepare ');
+
+    await myCharacteristicRACP.writeValueWithResponse(value_write);
+    console.log('> writeValue success ');
+
+  }
+
+  async function funcFirst()
+  {
+    const service  = await server.getPrimaryService(serviceUuid);
+    var myCharacteristicRACP = await service.getCharacteristic(characteristicUuidRACP);
+    count=0;    Glucose=[];
+    console.log("funcFirst");
+    var value_write = Uint16Array.of((5)*256+1); //[0x1,1]
+
+    console.log('> writeValue prepare ');
+
+    await myCharacteristicRACP.writeValueWithResponse(value_write);
+    console.log('> writeValue success ');
+
+  }
+
+  async function funcLast()
+  {
+    const service  = await server.getPrimaryService(serviceUuid);
+    var myCharacteristicRACP = await service.getCharacteristic(characteristicUuidRACP);
+    count=0;    Glucose=[];
+
+    console.log("funcLast");
+    var value_write = Uint16Array.of((6)*256+1); //[0x1,1]
+
+    console.log('> writeValue prepare ' );
+    await myCharacteristicRACP.writeValueWithResponse(value_write);
+    console.log('> writeValue success ');
+
+  }
+
+  async function funcUpper4()
+  {
+    const service  = await server.getPrimaryService(serviceUuid);
+    var myCharacteristicRACP = await service.getCharacteristic(characteristicUuidRACP);
+    count=0;    
+    Glucose=[];
+    // 01 03 01 04 00
+    console.log("funcLast");
+  
+    var value_write = BigUint64Array.of(1+3*256+1*256*256+4*256*256*256); //[0x1,1]
+
+    console.log('> writeValue prepare ');
+
+    await myCharacteristicRACP.writeValueWithResponse(value_write);
+    console.log('> writeValue success ');
+
+  }
+
+
+async function onStartButtonClick() {
+  // service 180a
+
+  try {
+    log('Requesting Bluetooth Device...');
+    const device = await navigator.bluetooth.requestDevice({
+         filters: 
+         [
+          //  {acceptAllDevices : true },
+          // {services: [0x1808]},
+          // {services: ['heart_rate']},
+           {services: [serviceUuid]},
+          //  {name: 'Beurer GL50EVO'}
+          //  {name: 'GL50'}
+          //  {namePrefix: 'Prefix'}
+        ],
+      });
+
+    log('Connecting to GATT Server...');
+    server = await device.gatt.connect();
+    count =0;
+    log('Getting Service...');
+    const service  = await server.getPrimaryService(serviceUuid);
+    log('Getting Characteristic...');
+    
+    var myCharacteristic = await service.getCharacteristic(characteristicUuidGM);
+    var myCharacteristicRACP = await service.getCharacteristic(characteristicUuidRACP);
+    var myCharacteristicGMC = await service.getCharacteristic(characteristicUuidGMC);
+
+    await myCharacteristicRACP.startNotifications();
+    await myCharacteristic.startNotifications();
+    await myCharacteristicGMC.startNotifications();
+
+
+    console.log('> add event');
+
+    myCharacteristic.addEventListener('characteristicvaluechanged',
+        handleNotifications);
+    myCharacteristicGMC.addEventListener('characteristicvaluechanged',
+        handleNotifications);
+    myCharacteristicRACP.addEventListener('characteristicvaluechanged',
+        handleNotifications);
+
+    console.log('> Notifications started');
+    /**
+     * 1st byte
+     * 0x01: repot stored records
+     * 
+     * 2nd byte
+     * 0x00: NUll
+     * 0x01: all record
+     * 0x05: First record
+     * 0x06: Last record
+     * 
+     * */ 
+    // var value_write = Uint16Array.of(257); //[0x1,1]
+    
+    var value_write = Uint16Array.of((6)*256+1); //[0x1,1]
+
+    console.log('> writeValue prepare ');
+
+    await myCharacteristicRACP.writeValueWithResponse(value_write);
+    console.log('> writeValue success ');
+
+
+
+  } catch(error) {
+    log('Argh! ' + error);
+  }
+
+
+  
+}
+
+function graphGlucose()
+{
+    var chart = new CanvasJS.Chart("chartContainer_Glucose", {
+        animationEnabled: true,
+        theme: "light2",
+        title:{
+            text: "Glucose"
+        },
+        axisX:{
+            valueFormatString: "hh:mm:ss DD MMM YYYY",
+            crosshair: {
+                enabled: true,
+                snapToDataPoint: true
+            }
+        },
+        axisY: {
+            title: "Glucose()",
+            includeZero: true,
+            crosshair: {
+                enabled: true
+            }
+        },
+        toolTip:{
+            shared:true
+        },  
+        legend:{
+            cursor:"pointer",
+            verticalAlign: "bottom",
+            horizontalAlign: "left",
+            dockInsidePlotArea: true,
+            itemclick: toogleDataSeries
+        },
+        data: [{
+            type: "line",
+            showInLegend: true,
+            name: "Glucose",
+            markerType: "square",
+            xValueFormatString: "hh:mm:ss DD MMM, YYYY",
+            color: "#F08080",
+            dataPoints: Glucose
+        },
+        ]
+    });
+    chart.render();
+    
+    function toogleDataSeries(e){
+        if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+            e.dataSeries.visible = false;
+        } else{
+            e.dataSeries.visible = true;
+        }
+        chart.render();
+
+    }
+}
+
+async function getStateNotify(myCharacteristicGM,myCharacteristicRACP,myCharacteristicGMC) { 
+    var myDescriptor     = await myCharacteristicGM.getDescriptor('gatt.client_characteristic_configuration');
+    var myDescriptorRACP = await myCharacteristicRACP.getDescriptor('gatt.client_characteristic_configuration');
+    var myDescriptorGMC  = await myCharacteristicGMC.getDescriptor('gatt.client_characteristic_configuration');
+
+    log('> get state');
+    var stateGM =  (await myDescriptorRACP.readValue());
+    var stateRACP =  await myDescriptor.readValue()
+    var stateGMC =  await myDescriptorGMC.readValue()
+
+    log('> show state');
+    console.log(stateGM.getUint8(0)  +','+stateGM.getUint8(1))
+    console.log(stateRACP.getUint8(0)+','+stateRACP.getUint8(1))
+    console.log(stateGMC.getUint8(0) +','+stateGMC.getUint8(1))
+    log('> Notifications started');
+
+    await myDescriptorRACP.writeValue(Uint8Array.of(indicate_enable));
+    await myDescriptor.writeValue(Uint8Array.of(notify_enable));
+    await myDescriptorGMC.writeValue(Uint8Array.of(notify_enable));
+
+
+}
+
+
+async function onStopButtonClick() {
+//    await graph();
+
+    
+    
+  if (myCharacteristic) {
+
+    try {
+      await myCharacteristic.stopNotifications();
+      log('> Notifications stopped');
+      myCharacteristic.removeEventListener('characteristicvaluechanged',
+          handleNotifications);
+
+
+    } catch(error) {
+      log('Argh! ' + error);
+    }
+  }
+
+  log('> Bluetooth Device disconnected');
+  connectDeviceAndCacheCharacteristics()
+  .catch(error => {
+    log('Argh! ' + error);
+  });
+
+}
+function generate_table() {
+  // get the reference for the body
+  var tbD = document.getElementById("tableid");
+  if(tbD) tbD.parentNode.removeChild(tbD);
+
+  var body = document.getElementsByTagName("body")[0];
+  // console.log(body)
+  // creates a <table> element and a <tbody> element
+  var tbl = document.createElement("table");
+  tbl.setAttribute("id", "tableid");
+  // document.getElementsByTagName("body")[1].style.color = "red";
+
+  // style="width:50%;
+  // document.getElementById("tableid").style.width = 100;
+
+  var tblBody = document.createElement("tbody");
+
+  // creating Topic 
+  var row = document.createElement("tr");
+
+  var cell = document.createElement("td");
+  var cellText = document.createTextNode("Sequence");
+  cell.appendChild(cellText);
+  row.appendChild(cell);
+
+  cell = document.createElement("td");
+  cellText = document.createTextNode("Timestamp");
+  cell.appendChild(cellText);
+  row.appendChild(cell);
+
+  cell = document.createElement("td");
+  cellText = document.createTextNode("Glucose");
+  cell.appendChild(cellText);
+  row.appendChild(cell);
+
+  cell = document.createElement("td");
+  cellText = document.createTextNode("marker");
+  cell.appendChild(cellText);
+  row.appendChild(cell);
+
+  tblBody.appendChild(row);
+
+  for (var i = 0; i < Glucose.length; i++) {
+      // creates a table row
+      var row = document.createElement("tr");
+
+      // Create a <td> element and a text node, make the text
+      // node the contents of the <td>, and put the <td> at
+      // the end of the table row
+      cell = document.createElement("td");
+      cellText = document.createTextNode( Glucose[i].sq);
+      cell.appendChild(cellText);
+      row.appendChild(cell);
+
+      var cell = document.createElement("td");
+      var cellText = document.createTextNode(Glucose[i].x);
+      cell.appendChild(cellText);
+      row.appendChild(cell);
+
+      cell = document.createElement("td");
+      cellText = document.createTextNode( Glucose[i].y);
+      cell.appendChild(cellText);
+      row.appendChild(cell);
+
+      cell = document.createElement("td");
+      cellText = document.createTextNode( Glucose[i].marker);
+      cell.appendChild(cellText);
+      row.appendChild(cell);
+
+
+
+      // add the row to the end of the table body
+      tblBody.appendChild(row);
+  }
+
+  // put the <tbody> in the <table>
+  tbl.appendChild(tblBody);
+  // appends <table> into <body>
+  body.appendChild(tbl);
+  // sets the border attribute of tbl to 2;
+  tbl.setAttribute("border", "2");
+}
+
+
+
+async function handleNotifications(event) {
+  let value = event.target.value;
+
+
+
+  let a = [];
+  // // Convert raw data bytes to hex values j
+  for (let i = 0; i < value.byteLength; i++) {
+
+    a.push(value.getUint8(i));
+  }
+console.log(count+'--'+a);
+  // log('> ' + a.join(' '));
+ 
+//  log('> Timestamp: ' +a[6] + '/' + a[5] + '/' + (a[3]+a[4]*256) + ' ' + a[7] + ':' + a[8] + ':' + a[9])
+  if( event.target.uuid === characteristicUuidGM)
+  {
+    var timestamp= new Date(a[3] +a[4]*256, a[5], a[6], a[7], a[8], 0)
+    var unit_list = ['mg/dL','mmol/L'];
+    var value_gl = (a[10]+(a[11]%16)*256);
+  //  The two most significant bits of this byte are used for the marker.
+  // 0x00 means no marker | 0x01 means Before Meal | 0x10 means After
+  // Meal | 0x11 means General Marker
+    var marker_list = ['no marker','Before Meal','After meal','General Marker'];
+    // 0xb1=(B/16*2)+B%16 = B1B2
+    var i_marker = ((17/16*2)+(17%16)).toFixed(0);
+    
+    // log('---- Sequence number: ' + (a[1]+a[2]*256) +' ----')
+    // log('> Timestamp: ' +timestamp);
+    // log('> Glucose: ' + value_gl + ' ' + unit_list[a[9]] ); //+' ' + a[11] ไบต์ ที่ 4 - 7 0b1011(0xbx) ไม่แน่ใจคืออะไร
+    // log('> Marker['+i_marker+']:' + marker_list[i_marker]); //17 == 0x11
+    // if(a[5]!=2)
+      {
+      Glucose[count]={
+          x:timestamp,
+          y:value_gl,
+          marker: marker_list[i_marker],
+          sq:a[1]+a[2]*256
+      };
+      count ++;
+      await graphGlucose();
+      generate_table()
+    }    
+  }
+  else if( event.target.uuid === characteristicUuidGMC)
+    console.log('> characteristicUuidGMC ' + a.join(' '));
+  else if( event.target.uuid === characteristicUuidRACP)
+    console.log('> characteristicUuidRACP '+ a.join(' '));
+
+}
+</script>
+
+<script>
+  document.querySelector('#startNotifications').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onStartButtonClick();
+    }
+  });
+  document.querySelector('#stopNotifications').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      onStopButtonClick();
+    }
+    
+  });
+  // document.querySelector('#generate').addEventListener('click', function(event) {
+  //   event.stopPropagation();
+  //   event.preventDefault();
+  //   generate_table();
+  // });
+
+</script>
+
+<script>
+  log = ChromeSamples.log;
+
+  function isWebBluetoothEnabled() {
+    if (navigator.bluetooth) {
+      return true;
+    } else {
+      ChromeSamples.setStatus('Web Bluetooth API is not available.\n' +
+          'Please make sure the "Experimental Web Platform features" flag is enabled.');
+      return false;
+    }
+  }
+</script>
+
+<style>
+    .columns {
+        column-count: 1;
+      }
+</style>
+
+<table border="0px solid" width="100%">
+    <tr style="font-size: 20px;">
+        <!-- <th>User</th> -->
+        <!-- <th>User  2</th> -->
+    </tr>
+    <tr align="center">
+        <td>
+            <div id="chartContainer_Glucose" style="height: 200px; width: 100%;"></div> <br><br>
+            <div id="chartContainer" style="height: 120px; width: 100%;"></div>
+        </td>
+        <!-- <td>
+            <div id="chartContainer_user2" style="height: 260px; width: 100%;"></div> <br><br>
+            <div id="chartContainer_GlucoseU2" style="height: 260px; width: 100%;"></div>
+            gg
+        </td> -->
+    </tr>
+</table>
+   
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+  
+
+</body></html>
